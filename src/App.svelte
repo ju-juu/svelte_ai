@@ -1,47 +1,95 @@
 <script>
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+    import {onMount} from 'svelte';
+    import {createHandler} from "./lib/OpenAIHandler.js";
+
+    let ai;
+    let question = '';
+    let image_prompt = ''
+    let response = '';
+    let isLoading = false;
+    let image = '';
+
+    onMount(() => {
+        ai = createHandler('API KEY');
+    });
+
+    async function askQuestion() {
+        isLoading = true;
+        response = await ai.ask(question);
+        isLoading = false;
+    }
+
+    async function generateImage() {
+        isLoading = true;
+        image = await ai.image(image_prompt);
+        isLoading = false;
+    }
+
 </script>
 
 <main>
-  <div>
-    <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
+    <h1>Ask any question.</h1>
+    <div class="chat-box">
+        <input type="text" bind:value={question} placeholder="Ask a question"/>
+        <button on:click={askQuestion} disabled={isLoading}>
+            {isLoading ? 'Loading...' : 'Ask'}
+        </button>
+    </div>
+    {#if response}
+        <div class="response">
+            <strong>Response:</strong>
+            <p>{response}</p>
+        </div>
+    {/if}
+    <br/>
+    <br/>
 
-  <div class="card">
-    <Counter />
-  </div>
+    <h1>Generate an Image.</h1>
+    <div class="image-box">
+        <div class="chat-box">
+            <input type="text" bind:value={image_prompt} placeholder="Describe the image"/>
+            <button on:click={generateImage} disabled={isLoading}>
+                {isLoading ? 'Generating...' : 'Ask'}
+            </button>
+        </div>
+        {#if image}
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <div class="generated-image">
+                <img src={image} alt="Generated Image"/>
+            </div>
+        {/if}
+    </div>
 
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
 
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
 </main>
 
 <style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
+    .chat-box {
+        margin-top: 1em;
+        display: flex;
+    }
+
+    .chat-box input {
+        flex: 1;
+        padding: 0.5em;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .chat-box button {
+        margin-left: 0.5em;
+        padding: 0.5em 1em;
+        border: none;
+        background-color: #646cff;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .response {
+        margin-top: 1em;
+    }
 </style>
